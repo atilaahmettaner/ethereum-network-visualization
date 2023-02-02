@@ -1,7 +1,7 @@
 const express = require("express")
 const nodemon= require('nodemon')
 const {graphqlHTTP} = require("express-graphql");
-const schema = require("./Schemas");
+const schema = require("../Schemas");
 const {response} = require("express");
 const path = require("path");
 const http = require("http")
@@ -14,17 +14,17 @@ var api = require('etherscan-api').init('7ECHSQBN5X133MMHU5JJWKUBR8CDKW3243');
 app.use(express.urlencoded({ extended: true }));
 var PORT = 8080;
     app.get("/",(req,res)=>{
-        res.sendFile(path.join(__dirname + '/api.html'));
+        res.sendFile(path.join(__dirname + '/../html/api.html'));
 
     })
 app.get("/visual",(req
               ,res)=>{
-    res.sendFile(path.join(__dirname + '/directional.html'));
+    res.sendFile(path.join(__dirname + '/../html/directional.html'));
 })
 
 app.get("/a",(req
               ,res)=>{
-    res.sendFile(path.join(__dirname + '/ether.html'));
+    res.sendFile(path.join(__dirname + '/../html/ether.html'));
 
 })
     app.post("/ethers",function(req, response){

@@ -5,7 +5,7 @@ const {graphqlHTTP}=require('express-graphql');
 const graphql = require("graphql");
 const {GraphQLSchema,GraphQLObjectType,GraphQLInt,GraphQLString, getOperationRootType,GraphQLList}=graphql
 const port= 6969
-const schema=require("./Schemas/index")
+const schema=require("../Schemas")
 const http = require("http");
 
 app.use('/graphql',graphqlHTTP({

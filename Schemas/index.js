@@ -1,7 +1,7 @@
 const graphql=require("graphql")
 const {GraphQLSchema,GraphQLObjectType,GraphQLInt,GraphQLString, getOperationRootType,GraphQLList}=graphql
-const UserType=require("C:\\Users\\Atila\\WebstormProjects\\visualtransaction\\Schemas\\TypeDefs\\UserTypes.js")
-const userData=require('C:\\Users\\Atila\\WebstormProjects\\visualtransaction\\MOCK_DATA.json')
+const UserType=require("C:\\Users\\Atila\\Documents\\GitHub\\ethereum-network-visualization\\Schemas\\TypeDefs\\UserTypes.js")
+const userData=require('C:\\Users\\Atila\\Documents\\GitHub\\ethereum-network-visualization\\MOCK_DATA.json')
 
 const ROOTquery =new GraphQLObjectType({
         name:"RootQueryType",
