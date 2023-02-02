@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        body
+        {
+            background-image:url("https://upload.wikimedia.org/wikipedia/commons/8/8b/Social_Network_Visualization.png");
+        }
+    </style>
+</head>
+<body style="background-color: #435165">
+<div class="adress" style="width: 400px;
+  background-color: #d2dde1;
+  box-shadow: 0 0 9px 0 rgba(169,61,61,0.3);
+  margin: 100px auto;">
+    <h1>Enter your adress</h1>
+    <form action="/ethers" method="post" style="display: inline;
+  justify-content: space-between;
+  padding-top: 20px;"  >
+
+        <label for="startblock" >
+            <i class="fas fa-block"></i>
+        </label>
+        <br>
+        <input type="text" name="startblock" placeholder="startblock" id="startblock" required  style=" width: 310px;
+           height: 25px;
+           border: 1px solid #5283e8;
+           margin-bottom: 20px;
+           padding: 0 15px;
+            border-radius: 8px" >
+        <br>
+        <label for="adress" >
+            <i class="fas fa-hash"></i>
+        </label>
+        <br>
+        <input type="text" name="adress" placeholder="adress" id="adress" required  style=" width: 310px;
+           height: 25px;
+           border: 1px solid #5283e8;
+           margin-bottom: 20px;
+           padding: 0 15px;
+            border-radius: 8px" >
+        <input type="submit"  value="Send" style="width: 100%;
+    padding: 15px;
+    margin-top: 20px;
+    background-color: #3274d6;
+    border: 0;
+    cursor: pointer;
+    font-weight: bold;
+    color: #ffffff;
+    transition: background-color 0.2s; ;
+    display: flex;
+    align-items: center;
+    justify-content: center; ">
+    </form>
+</div>
+
+</body>
+</html>

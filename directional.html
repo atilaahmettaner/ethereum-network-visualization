@@ -1,0 +1,60 @@
+<head>
+  <style> body { margin: 0; } </style>
+
+  <script src="//unpkg.com/force-graph"></script>
+</head>
+
+<body>
+<div id="graph"></div>
+
+<script>
+
+  const gData = {
+
+    "nodes": [
+
+    {
+      "id": "id1",
+      "name": "0x9d9a09db56c58a6619670b3926ab8351e94e78dd",
+      "val": 1
+    },
+    {
+        "id": "id2",
+      "name": "0x9d9a09db56c58a6619670b3926ab8351e94e78dd",
+      "val": 10
+    },
+      {
+        "id": "id3",
+        "name": "0x9d9a09db56c58a6619670b3926ab8351e94e78dd",
+        "val": 25
+      },
+      {
+        "id": "id4",
+        "name": "0x9d9a09db56c58a6619670b3926ab8351e94e78dd",
+        "val": 10
+      },
+  ],
+          "links": [
+            {
+              "source": "id1",
+              "target": "id2"
+            },{
+              "source": "id2",
+              "target": "id3"
+            },
+            {
+              "source": "id4",
+              "target": "id1"
+            },{
+              "source": "id3",
+              "target": "id4"
+            },
+  ]
+  };
+
+  const Graph = ForceGraph()
+  (document.getElementById('graph'))
+          .graphData(gData)
+          .linkDirectionalArrowLength(6);
+</script>
+</body>
