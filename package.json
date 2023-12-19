@@ -17,7 +17,7 @@
     "force-graph": "^1.42.16",
     "graphql": "^16.6.0",
     "http": "0.0.1-security",
-    "mongoose": "^6.8.1",
+    "mongoose": "^6.11.3",
     "nodemon": "^2.0.20",
     "path": "^0.12.7"
   },
