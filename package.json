@@ -10,7 +10,7 @@
   "license": "ISC",
   "dependencies": {
     "dotenv": "^16.0.3",
-    "ethers": "^5.7.2",
+    "ethers": "^6.13.3",
     "etherscan-api": "^10.2.0",
     "express": "^4.21.0",
     "express-graphql": "^0.12.0",
