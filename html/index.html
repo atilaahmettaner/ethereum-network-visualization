@@ -1,41 +1,237 @@
 <head>
-    <style> body { margin: 0; } </style>
-    <script src="//unpkg.com/force-graph"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ethereum Network Visualization</title>
+    <style> 
+        body { 
+            margin: 0; 
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .header {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+            color: white;
+            background: rgba(0,0,0,0.7);
+            padding: 15px 20px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .header h1 {
+            margin: 0 0 5px 0;
+            font-size: 24px;
+        }
+        
+        .header p {
+            margin: 0;
+            font-size: 14px;
+            opacity: 0.8;
+        }
+        
+        .controls {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn {
+            padding: 10px 15px;
+            background: rgba(255,255,255,0.9);
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        
+        .btn:hover {
+            background: white;
+            transform: translateY(-2px);
+        }
+        
+        .info-panel {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            max-width: 300px;
+            z-index: 1000;
+        }
+        
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 18px;
+            z-index: 999;
+        }
+    </style>
+    <script src="//unpkg.com/force-graph"></script>
 </head>
 
 <body>
-<div id="graph"></div>
-
+    <div class="header">
+        <h1>🔗 Ethereum Network Visualization</h1>
+        <p>Real-time Ethereum transaction visualization</p>
+    </div>
+    
+    <div class="controls">
+        <button class="btn" onclick="loadSampleData()">📊 Sample Data</button>
+        <button class="btn" onclick="loadRealData()">🔴 Live Data</button>
+        <button class="btn" onclick="resetView()">🔄 Reset View</button>
+    </div>
+    
+    <div class="loading" id="loading">Loading data...</div>
+    
+    <div id="graph"></div>
+    
+    <div class="info-panel" id="info-panel">
+        <h3 style="margin-top: 0;">💡 How to Use</h3>
+        <ul style="margin: 10px 0; padding-left: 20px; font-size: 13px;">
+            <li>Drag with mouse to move the graph</li>
+            <li>Scroll to zoom in/out</li>
+            <li>Click nodes to see details</li>
+            <li>Start with "Sample Data" for quick demo</li>
+        </ul>
+    </div>
 </body>
+
 <script>
-    // Ethereum işlemlerini görselleştirme
-    fetch('/miserables.json').then(res => res.json()).then(data => {
-        ForceGraph()
+    let currentGraph = null;
+    
+    function initializeGraph(data) {
+        const loadingEl = document.getElementById('loading');
+        loadingEl.style.display = 'none';
+        
+        if (currentGraph) {
+            document.getElementById('graph').innerHTML = '';
+        }
+        
+        currentGraph = ForceGraph()
             (document.getElementById('graph'))
             .graphData(data)
-            .linkDirectionalArrowLength(5)
+            .linkDirectionalArrowLength(8)
+            .linkDirectionalArrowRelPos(1)
+            .linkCurvature(0.2)
             .nodeAutoColorBy('group')
+            .nodeLabel(node => `
+                <div style="background: rgba(0,0,0,0.8); color: white; padding: 10px; border-radius: 5px; font-size: 12px;">
+                    <strong>${node.name || node.id}</strong><br/>
+                    Type: ${node.type || 'Wallet'}<br/>
+                    ${node.balance ? `Balance: ${node.balance}<br/>` : ''}
+                    Address: ${node.id.substring(0, 10)}...
+                </div>
+            `)
+            .linkLabel(link => `
+                <div style="background: rgba(0,0,0,0.8); color: white; padding: 8px; border-radius: 5px; font-size: 11px;">
+                    <strong>${link.type || 'Transfer'}</strong><br/>
+                    Value: ${link.value}<br/>
+                    ${link.timestamp ? `Time: ${link.timestamp}<br/>` : ''}
+                    ${link.hash ? `Hash: ${link.hash.substring(0, 10)}...` : ''}
+                </div>
+            `)
             .nodeCanvasObject((node, ctx, globalScale) => {
-                const label = node.name;
+                const label = node.name || node.id.substring(0, 8);
                 const fontSize = 12/globalScale;
-                ctx.font = `${fontSize}px Sans-Serif`;
+                ctx.font = `${fontSize}px Arial`;
+                
+                // Node çember çiz
+                ctx.beginPath();
+                ctx.arc(node.x, node.y, 8, 0, 2 * Math.PI, false);
+                ctx.fillStyle = node.color || '#69b3ff';
+                ctx.fill();
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                
+                // Label arka plan
                 const textWidth = ctx.measureText(label).width;
-                const bckgDimensions = [textWidth, fontSize].map(n => n + fontSize * 0.2);
-
-                ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-                ctx.fillRect(node.x - bckgDimensions[0] / 2, node.y - bckgDimensions[1] / 2, ...bckgDimensions);
-
+                const bckgDimensions = [textWidth + 8, fontSize + 4];
+                
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+                ctx.fillRect(node.x - bckgDimensions[0] / 2, node.y + 12, ...bckgDimensions);
+                
+                // Label text
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
-                ctx.fillStyle = node.color;
-                ctx.fillText(label, node.x, node.y);
+                ctx.fillStyle = 'white';
+                ctx.fillText(label, node.x, node.y + 12 + fontSize/2);
+            })
+            .onNodeClick(node => {
+                // Node detaylarını göster
+                showNodeDetails(node);
             })
             .width(window.innerWidth)
             .height(window.innerHeight);
-    })
-    .catch(err => {
-        console.error('Veri yüklenirken hata:', err);
-        document.getElementById('graph').innerHTML = '<h1>Veri yüklenirken hata oluştu</h1>';
+    }
+    
+    function showNodeDetails(node) {
+        const infoPanel = document.getElementById('info-panel');
+        infoPanel.innerHTML = `
+            <h3 style="margin-top: 0;">🔍 Node Details</h3>
+            <p><strong>Name:</strong> ${node.name || 'Unknown'}</p>
+            <p><strong>Type:</strong> ${node.type || 'Wallet'}</p>
+            <p><strong>Address:</strong> ${node.id}</p>
+            ${node.balance ? `<p><strong>Balance:</strong> ${node.balance}</p>` : ''}
+            <p><strong>Group:</strong> ${node.group}</p>
+        `;
+    }
+    
+    function loadSampleData() {
+        document.getElementById('loading').style.display = 'block';
+        fetch('/ethereum-sample.json')
+            .then(res => res.json())
+            .then(data => {
+                initializeGraph(data);
+            })
+            .catch(err => {
+                console.error('Error loading sample data:', err);
+                document.getElementById('loading').innerHTML = 'Error loading sample data!';
+            });
+    }
+    
+    function loadRealData() {
+        document.getElementById('loading').style.display = 'block';
+        fetch('/miserables.json')
+            .then(res => res.json())
+            .then(data => {
+                initializeGraph(data);
+            })
+            .catch(err => {
+                console.error('Error loading real data:', err);
+                document.getElementById('loading').innerHTML = 'Error loading real data!';
+            });
+    }
+    
+    function resetView() {
+        if (currentGraph) {
+            currentGraph.zoomToFit(400);
+        }
+    }
+    
+    window.addEventListener('load', () => {
+        setTimeout(() => {
+            loadSampleData();
+        }, 500);
+    });
+    
+    window.addEventListener('resize', () => {
+        if (currentGraph) {
+            currentGraph
+                .width(window.innerWidth)
+                .height(window.innerHeight);
+        }
     });
 </script>

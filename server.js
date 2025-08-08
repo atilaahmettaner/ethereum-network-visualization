@@ -28,11 +28,22 @@ app.get('/vis', (req, res) => {
     res.sendFile(path.join(__dirname, 'html', 'vis.html'));
 });
 
+// Ethereum örnek verileri API endpoint'i
+app.get('/ethereum-sample.json', (req, res) => {
+    res.sendFile(path.join(__dirname, 'ethereum-sample.json'));
+});
+
+// Miserables verileri API endpoint'i
+app.get('/miserables.json', (req, res) => {
+    res.sendFile(path.join(__dirname, 'miserables.json'));
+});
+
 app.listen(port, () => {
-    console.log(`Ethereum Network Visualization çalışıyor: http://localhost:${port}`);
-    console.log(`Mevcut sayfalar:`);
-    console.log(`- Ana sayfa: http://localhost:${port}/`);
-    console.log(`- Ether görselleştirme: http://localhost:${port}/ether`);
-    console.log(`- API test: http://localhost:${port}/api`);
-    console.log(`- Visualizasyon: http://localhost:${port}/vis`);
+    console.log(`🚀 Ethereum Network Visualization running at: http://localhost:${port}`);
+    console.log(`📱 Available pages:`);
+    console.log(`   • Main page: http://localhost:${port}/`);
+    console.log(`   • Ethereum visualization: http://localhost:${port}/ether`);
+    console.log(`   • API testing: http://localhost:${port}/api`);
+    console.log(`   • Advanced visualization: http://localhost:${port}/vis`);
+    console.log(`🔗 Sample Ethereum data includes: Vitalik Buterin, Binance, Uniswap, MakerDAO & more!`);
 });

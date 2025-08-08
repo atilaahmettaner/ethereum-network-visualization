@@ -1,0 +1,158 @@
+{
+  "nodes": [
+    {
+      "id": "0x742d35Cc6634C0532925a3b8D48aD6e4b87BFCe2",
+      "name": "Vitalik Buterin",
+      "group": 1,
+      "type": "whale_wallet",
+      "balance": "325.8 ETH",
+      "color": "#ff6b6b"
+    },
+    {
+      "id": "0x8ba1f109551bD432803012645Hac136c22C03e7c",
+      "name": "Binance Hot Wallet", 
+      "group": 2,
+      "type": "exchange",
+      "balance": "15,892.4 ETH",
+      "color": "#f39c12"
+    },
+    {
+      "id": "0x6B175474E89094C44Da98b954EedeAC495271d0F",
+      "name": "MakerDAO (DAI)",
+      "group": 3,
+      "type": "defi_protocol",
+      "balance": "5,847,293 DAI",
+      "color": "#45b7d1"
+    },
+    {
+      "id": "0xA0b86a33E6441497d421B72bD3c4Dfe8bd6f7eF3",
+      "name": "Uniswap V3",
+      "group": 4,
+      "type": "defi_protocol",
+      "balance": "2,847.1 ETH",
+      "color": "#e91e63"
+    },
+    {
+      "id": "0x514910771AF9Ca656af840dff83E8264EcF986CA",
+      "name": "Chainlink (LINK)",
+      "group": 5,
+      "type": "token_contract",
+      "balance": "1,000,000,000 LINK",
+      "color": "#2196f3"
+    },
+    {
+      "id": "0x3d7982F9D13f9e4e0De0e8D5e6b95b2c8CD8E0c2",
+      "name": "F2Pool Mining",
+      "group": 6,
+      "type": "mining_pool",
+      "balance": "1,284.7 ETH",
+      "color": "#9c27b0"
+    },
+    {
+      "id": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+      "name": "WETH Contract",
+      "group": 7,
+      "type": "token_contract",
+      "balance": "2,847,391 WETH",
+      "color": "#607d8b"
+    },
+    {
+      "id": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+      "name": "Tether (USDT)",
+      "group": 8,
+      "type": "token_contract",
+      "balance": "45,982,847,291 USDT",
+      "color": "#4caf50"
+    },
+    {
+      "id": "0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984",
+      "name": "Uniswap Token",
+      "group": 9,
+      "type": "governance_token",
+      "balance": "1,000,000,000 UNI",
+      "color": "#ff9800"
+    },
+    {
+      "id": "0x95aD61b0a150d79219dCF64E1E6Cc01f0B64C4cE",
+      "name": "Shiba Inu (SHIB)",
+      "group": 10,
+      "type": "meme_token",
+      "balance": "549,063,278,876,301 SHIB",
+      "color": "#795548"
+    }
+  ],
+  "links": [
+    {
+      "source": "0x742d35Cc6634C0532925a3b8D48aD6e4b87BFCe2",
+      "target": "0x8ba1f109551bD432803012645Hac136c22C03e7c",
+      "value": 25.5,
+      "type": "ETH Transfer",
+      "hash": "0xa1b2c3d4e5f67890abcdef1234567890abcdef12",
+      "timestamp": "2025-08-08 14:30:15",
+      "gas_used": "21000"
+    },
+    {
+      "source": "0x8ba1f109551bD432803012645Hac136c22C03e7c",
+      "target": "0x6B175474E89094C44Da98b954EedeAC495271d0F",
+      "value": 50000,
+      "type": "DAI Mint",
+      "hash": "0xb2c3d4e5f6a78901bcdef2345678901bcdef234",
+      "timestamp": "2025-08-08 14:32:20",
+      "gas_used": "157842"
+    },
+    {
+      "source": "0xA0b86a33E6441497d421B72bD3c4Dfe8bd6f7eF3",
+      "target": "0x514910771AF9Ca656af840dff83E8264EcF986CA",
+      "value": 5000,
+      "type": "LINK Swap",
+      "hash": "0xc3d4e5f6a7b89012cdef3456789012cdef34567",
+      "timestamp": "2025-08-08 14:35:10",
+      "gas_used": "284751"
+    },
+    {
+      "source": "0x3d7982F9D13f9e4e0De0e8D5e6b95b2c8CD8E0c2",
+      "target": "0x742d35Cc6634C0532925a3b8D48aD6e4b87BFCe2",
+      "value": 6.25,
+      "type": "Block Reward",
+      "hash": "0xd4e5f6a7b8c90123def4567890123def4567890",
+      "timestamp": "2025-08-08 14:38:45",
+      "gas_used": "0"
+    },
+    {
+      "source": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+      "target": "0xA0b86a33E6441497d421B72bD3c4Dfe8bd6f7eF3",
+      "value": 100,
+      "type": "WETH Deposit",
+      "hash": "0xe5f6a7b8c9d01234ef567890234ef567890234e",
+      "timestamp": "2025-08-08 14:40:30",
+      "gas_used": "46821"
+    },
+    {
+      "source": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+      "target": "0x8ba1f109551bD432803012645Hac136c22C03e7c",
+      "value": 1000000,
+      "type": "USDT Transfer",
+      "hash": "0xf6a7b8c9d0e12345f6789012345f6789012345f",
+      "timestamp": "2025-08-08 14:42:15",
+      "gas_used": "54829"
+    },
+    {
+      "source": "0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984",
+      "target": "0xA0b86a33E6441497d421B72bD3c4Dfe8bd6f7eF3",
+      "value": 2500,
+      "type": "UNI Governance",
+      "hash": "0xa7b8c9d0e123456789012356789012356789012",
+      "timestamp": "2025-08-08 14:44:50",
+      "gas_used": "128476"
+    },
+    {
+      "source": "0x95aD61b0a150d79219dCF64E1E6Cc01f0B64C4cE",
+      "target": "0x742d35Cc6634C0532925a3b8D48aD6e4b87BFCe2",
+      "value": 1000000000,
+      "type": "SHIB Transfer",
+      "hash": "0xb8c9d0e1234567890123467890123467890123",
+      "timestamp": "2025-08-08 14:46:25",
+      "gas_used": "65000"
+    }
+  ]
+}
