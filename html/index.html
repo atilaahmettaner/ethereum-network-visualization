@@ -1,8 +1,7 @@
 <head>
     <style> body { margin: 0; } </style>
-
     <script src="//unpkg.com/force-graph"></script>
-    <!--<script src="../../dist/force-graph.js"></script>-->
+    <title>Ethereum Network Visualization</title>
 </head>
 
 <body>
@@ -10,11 +9,33 @@
 
 </body>
 <script>
-    // Random tree
-
-    fetch('./miserables.json').then(res => res.json()).then(data => {
-        (document('graph'))
+    // Ethereum işlemlerini görselleştirme
+    fetch('/miserables.json').then(res => res.json()).then(data => {
+        ForceGraph()
+            (document.getElementById('graph'))
             .graphData(data)
             .linkDirectionalArrowLength(5)
+            .nodeAutoColorBy('group')
+            .nodeCanvasObject((node, ctx, globalScale) => {
+                const label = node.name;
+                const fontSize = 12/globalScale;
+                ctx.font = `${fontSize}px Sans-Serif`;
+                const textWidth = ctx.measureText(label).width;
+                const bckgDimensions = [textWidth, fontSize].map(n => n + fontSize * 0.2);
+
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+                ctx.fillRect(node.x - bckgDimensions[0] / 2, node.y - bckgDimensions[1] / 2, ...bckgDimensions);
+
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillStyle = node.color;
+                ctx.fillText(label, node.x, node.y);
+            })
+            .width(window.innerWidth)
+            .height(window.innerHeight);
     })
+    .catch(err => {
+        console.error('Veri yüklenirken hata:', err);
+        document.getElementById('graph').innerHTML = '<h1>Veri yüklenirken hata oluştu</h1>';
+    });
 </script>
