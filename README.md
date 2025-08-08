@@ -78,7 +78,7 @@ npm run ethereum
 - **Backend**: Node.js, Express.js
 - **Frontend**: Vanilla JavaScript, HTML5, CSS3
 - **Visualization**: Force-Graph (D3.js based)
-- **API**: Etherscan API, Alchemy WebSocket
+- **API**: Etherscan API,Grapql Alchemy WebSocket
 - **Data**: JSON, RESTful API
 
 ## 🔒 Security

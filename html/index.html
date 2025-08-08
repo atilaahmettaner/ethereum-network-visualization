@@ -39,21 +39,66 @@
             z-index: 1000;
             display: flex;
             gap: 10px;
+            flex-wrap: wrap;
+            max-width: 500px;
         }
         
         .btn {
-            padding: 10px 15px;
+            padding: 8px 12px;
             background: rgba(255,255,255,0.9);
             border: none;
-            border-radius: 5px;
+            border-radius: 8px;
             cursor: pointer;
             font-weight: bold;
+            font-size: 12px;
             transition: all 0.3s ease;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
         
         .btn:hover {
             background: white;
             transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        
+        #addressInput {
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            width: 180px;
+            font-size: 12px;
+            background: rgba(255,255,255,0.95);
+        }
+        
+        .stats-panel {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            min-width: 200px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .stats-panel h3 {
+            margin: 0 0 10px 0;
+            font-size: 16px;
+            color: #4ecdc4;
+        }
+        
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            margin: 5px 0;
+            font-size: 13px;
+        }
+        
+        .stat-value {
+            font-weight: bold;
+            color: #ffd93d;
         }
         
         .info-panel {
@@ -87,10 +132,34 @@
         <p>Real-time Ethereum transaction visualization</p>
     </div>
     
+    <div class="stats-panel" id="stats-panel">
+        <h3>📊 Network Stats</h3>
+        <div class="stat-item">
+            <span>Nodes:</span>
+            <span class="stat-value" id="node-count">0</span>
+        </div>
+        <div class="stat-item">
+            <span>Transactions:</span>
+            <span class="stat-value" id="tx-count">0</span>
+        </div>
+        <div class="stat-item">
+            <span>Data Source:</span>
+            <span class="stat-value" id="data-source">Sample</span>
+        </div>
+        <div class="stat-item">
+            <span>Updated:</span>
+            <span class="stat-value" id="last-update">Now</span>
+        </div>
+    </div>
+    
     <div class="controls">
-        <button class="btn" onclick="loadSampleData()">📊 Sample Data</button>
-        <button class="btn" onclick="loadRealData()">🔴 Live Data</button>
-        <button class="btn" onclick="resetView()">🔄 Reset View</button>
+        <button class="btn" onclick="loadSampleData()">📊 Sample</button>
+        <button class="btn" onclick="loadRealData()">🔴 Live</button>
+        <button class="btn" onclick="resetView()">🔄 Reset</button>
+        <input type="text" id="addressInput" placeholder="0x..." 
+               style="padding: 8px 12px; border-radius: 8px; border: 1px solid #ddd; width: 150px; font-size: 12px;">
+        <button class="btn" onclick="loadAddressData()">🔍 Search</button>
+        <button class="btn" onclick="toggleLayout()">🎯 Layout</button>
     </div>
     
     <div class="loading" id="loading">Loading data...</div>
@@ -110,6 +179,14 @@
 
 <script>
     let currentGraph = null;
+    let currentLayout = 'force'; // 'force', 'radial', 'hierarchical'
+    
+    function updateStats(data, source = 'Sample') {
+        document.getElementById('node-count').textContent = data.nodes ? data.nodes.length : 0;
+        document.getElementById('tx-count').textContent = data.links ? data.links.length : 0;
+        document.getElementById('data-source').textContent = source;
+        document.getElementById('last-update').textContent = new Date().toLocaleTimeString();
+    }
     
     function initializeGraph(data) {
         const loadingEl = document.getElementById('loading');
@@ -119,74 +196,227 @@
             document.getElementById('graph').innerHTML = '';
         }
         
+        // Verileri optimize et - çok fazla node varsa filtrele
+        const maxNodes = 50;
+        if (data.nodes && data.nodes.length > maxNodes) {
+            // En çok bağlantılı node'ları tut
+            const nodeDegree = {};
+            data.links.forEach(link => {
+                nodeDegree[link.source] = (nodeDegree[link.source] || 0) + 1;
+                nodeDegree[link.target] = (nodeDegree[link.target] || 0) + 1;
+            });
+            
+            data.nodes = data.nodes
+                .sort((a, b) => (nodeDegree[b.id] || 0) - (nodeDegree[a.id] || 0))
+                .slice(0, maxNodes);
+            
+            const keepNodes = new Set(data.nodes.map(n => n.id));
+            data.links = data.links.filter(l => keepNodes.has(l.source) && keepNodes.has(l.target));
+        }
+        
         currentGraph = ForceGraph()
             (document.getElementById('graph'))
             .graphData(data)
-            .linkDirectionalArrowLength(8)
+            .nodeId('id')
+            .linkSource('source')
+            .linkTarget('target')
+            .linkDirectionalArrowLength(6)
             .linkDirectionalArrowRelPos(1)
-            .linkCurvature(0.2)
-            .nodeAutoColorBy('group')
+            .linkCurvature(0.15)
+            .linkWidth(link => Math.min(8, Math.max(1, link.value * 2)))
+            .nodeRelSize(8)
+            .nodeAutoColorBy('type')
+            .backgroundColor('#667eea')
+            .linkColor(() => 'rgba(255,255,255,0.6)')
             .nodeLabel(node => `
-                <div style="background: rgba(0,0,0,0.8); color: white; padding: 10px; border-radius: 5px; font-size: 12px;">
-                    <strong>${node.name || node.id}</strong><br/>
-                    Type: ${node.type || 'Wallet'}<br/>
-                    ${node.balance ? `Balance: ${node.balance}<br/>` : ''}
-                    Address: ${node.id.substring(0, 10)}...
+                <div style="background: rgba(0,0,0,0.9); color: white; padding: 12px; border-radius: 8px; font-size: 12px; max-width: 250px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">
+                    <div style="font-weight: bold; color: #4ecdc4; margin-bottom: 8px;">${node.name || node.id.substring(0, 10) + '...'}</div>
+                    <div style="margin: 4px 0;"><strong>Type:</strong> ${node.type || 'Unknown'}</div>
+                    <div style="margin: 4px 0;"><strong>Address:</strong> ${node.id.substring(0, 20)}...</div>
+                    ${node.balance ? `<div style="margin: 4px 0;"><strong>Balance:</strong> ${node.balance}</div>` : ''}
+                    <div style="margin: 4px 0;"><strong>Group:</strong> ${node.group}</div>
                 </div>
             `)
             .linkLabel(link => `
-                <div style="background: rgba(0,0,0,0.8); color: white; padding: 8px; border-radius: 5px; font-size: 11px;">
-                    <strong>${link.type || 'Transfer'}</strong><br/>
-                    Value: ${link.value}<br/>
-                    ${link.timestamp ? `Time: ${link.timestamp}<br/>` : ''}
-                    ${link.hash ? `Hash: ${link.hash.substring(0, 10)}...` : ''}
+                <div style="background: rgba(0,0,0,0.9); color: white; padding: 10px; border-radius: 8px; font-size: 11px; max-width: 300px;">
+                    <div style="font-weight: bold; color: #ffd93d; margin-bottom: 6px;">${link.type || 'Transaction'}</div>
+                    <div style="margin: 3px 0;"><strong>Value:</strong> ${link.value ? link.value.toFixed(4) + ' ETH' : 'N/A'}</div>
+                    ${link.timestamp ? `<div style="margin: 3px 0;"><strong>Time:</strong> ${new Date(link.timestamp).toLocaleString()}</div>` : ''}
+                    ${link.hash ? `<div style="margin: 3px 0;"><strong>Hash:</strong> ${link.hash.substring(0, 20)}...</div>` : ''}
+                    ${link.gasUsed ? `<div style="margin: 3px 0;"><strong>Gas:</strong> ${link.gasUsed}</div>` : ''}
                 </div>
             `)
             .nodeCanvasObject((node, ctx, globalScale) => {
-                const label = node.name || node.id.substring(0, 8);
-                const fontSize = 12/globalScale;
-                ctx.font = `${fontSize}px Arial`;
+                // Daha güzel node çizimi
+                const radius = 6;
+                const label = node.name || node.id.substring(0, 6);
+                const fontSize = Math.max(8, 12/globalScale);
                 
-                // Node çember çiz
+                // Node çember
                 ctx.beginPath();
-                ctx.arc(node.x, node.y, 8, 0, 2 * Math.PI, false);
-                ctx.fillStyle = node.color || '#69b3ff';
+                ctx.arc(node.x, node.y, radius, 0, 2 * Math.PI, false);
+                ctx.fillStyle = node.color || '#4ecdc4';
                 ctx.fill();
-                ctx.strokeStyle = '#fff';
+                ctx.strokeStyle = '#ffffff';
                 ctx.lineWidth = 2;
                 ctx.stroke();
                 
+                // İç nokta (daha profesyonel görünüm)
+                ctx.beginPath();
+                ctx.arc(node.x, node.y, radius * 0.4, 0, 2 * Math.PI, false);
+                ctx.fillStyle = 'rgba(255,255,255,0.8)';
+                ctx.fill();
+                
                 // Label arka plan
+                ctx.font = `${fontSize}px Arial`;
                 const textWidth = ctx.measureText(label).width;
-                const bckgDimensions = [textWidth + 8, fontSize + 4];
+                const padding = 4;
                 
                 ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
-                ctx.fillRect(node.x - bckgDimensions[0] / 2, node.y + 12, ...bckgDimensions);
+                ctx.fillRect(
+                    node.x - textWidth/2 - padding, 
+                    node.y + radius + 4, 
+                    textWidth + padding * 2, 
+                    fontSize + padding
+                );
                 
                 // Label text
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
                 ctx.fillStyle = 'white';
-                ctx.fillText(label, node.x, node.y + 12 + fontSize/2);
+                ctx.fillText(label, node.x, node.y + radius + fontSize/2 + 6);
             })
             .onNodeClick(node => {
-                // Node detaylarını göster
+                // Node'a odaklan
+                currentGraph.centerAt(node.x, node.y, 1000);
+                currentGraph.zoom(8, 2000);
                 showNodeDetails(node);
             })
             .width(window.innerWidth)
-            .height(window.innerHeight);
+            .height(window.innerHeight)
+            .cooldownTime(15000)
+            .d3AlphaDecay(0.01)
+            .d3VelocityDecay(0.3);
+            
+        // İlk odaklanma
+        setTimeout(() => {
+            if (currentGraph && data.nodes.length > 0) {
+                currentGraph.zoomToFit(1000, 100);
+            }
+        }, 1000);
+        
+        // Stats güncelle
+        updateStats(data);
     }
     
     function showNodeDetails(node) {
         const infoPanel = document.getElementById('info-panel');
         infoPanel.innerHTML = `
-            <h3 style="margin-top: 0;">🔍 Node Details</h3>
-            <p><strong>Name:</strong> ${node.name || 'Unknown'}</p>
-            <p><strong>Type:</strong> ${node.type || 'Wallet'}</p>
-            <p><strong>Address:</strong> ${node.id}</p>
-            ${node.balance ? `<p><strong>Balance:</strong> ${node.balance}</p>` : ''}
-            <p><strong>Group:</strong> ${node.group}</p>
+            <h3 style="margin-top: 0; color: #4ecdc4;">🔍 Node Details</h3>
+            <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 8px; margin: 10px 0;">
+                <p style="margin: 8px 0;"><strong>Name:</strong> ${node.name || 'Unknown'}</p>
+                <p style="margin: 8px 0;"><strong>Type:</strong> ${node.type || 'Wallet'}</p>
+                <p style="margin: 8px 0; word-break: break-all;"><strong>Address:</strong> ${node.id}</p>
+                ${node.balance ? `<p style="margin: 8px 0;"><strong>Balance:</strong> ${node.balance}</p>` : ''}
+                <p style="margin: 8px 0;"><strong>Group:</strong> ${node.group}</p>
+            </div>
+            <div style="margin-top: 15px;">
+                <button onclick="focusOnNode('${node.id}')" style="background: #4ecdc4; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; margin-right: 10px;">
+                    🎯 Focus
+                </button>
+                <button onclick="exploreConnections('${node.id}')" style="background: #ffd93d; color: #333; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">
+                    🔗 Connections
+                </button>
+            </div>
         `;
+    }
+    
+    function focusOnNode(nodeId) {
+        if (currentGraph) {
+            const nodes = currentGraph.graphData().nodes;
+            const node = nodes.find(n => n.id === nodeId);
+            if (node) {
+                currentGraph.centerAt(node.x, node.y, 1000);
+                currentGraph.zoom(10, 2000);
+            }
+        }
+    }
+    
+    function exploreConnections(nodeId) {
+        if (currentGraph) {
+            const data = currentGraph.graphData();
+            const connections = data.links.filter(link => 
+                link.source.id === nodeId || link.target.id === nodeId
+            );
+            
+            alert(`Node has ${connections.length} connections:\n` + 
+                connections.slice(0, 5).map(link => 
+                    `${link.type || 'Transaction'}: ${link.value || 'N/A'} ETH`
+                ).join('\n') + 
+                (connections.length > 5 ? '\n...and more' : '')
+            );
+        }
+    }
+    
+    function changeLayout(layoutType) {
+        if (!currentGraph) return;
+        
+        currentLayout = layoutType;
+        const data = currentGraph.graphData();
+        
+        switch(layoutType) {
+            case 'radial':
+                // Radial layout - merkezi node etrafında daire
+                const centerNode = data.nodes[0];
+                const radius = 200;
+                data.nodes.forEach((node, i) => {
+                    if (i === 0) {
+                        node.fx = 0;
+                        node.fy = 0;
+                    } else {
+                        const angle = (i / (data.nodes.length - 1)) * 2 * Math.PI;
+                        node.fx = Math.cos(angle) * radius;
+                        node.fy = Math.sin(angle) * radius;
+                    }
+                });
+                break;
+                
+            case 'hierarchical':
+                // Hiyerarşik layout - seviyeli yerleşim
+                const levels = {};
+                data.nodes.forEach(node => {
+                    levels[node.group] = levels[node.group] || [];
+                    levels[node.group].push(node);
+                });
+                
+                let yOffset = -200;
+                Object.keys(levels).forEach(group => {
+                    const groupNodes = levels[group];
+                    const xSpacing = 300 / Math.max(1, groupNodes.length - 1);
+                    groupNodes.forEach((node, i) => {
+                        node.fx = (i * xSpacing) - 150;
+                        node.fy = yOffset;
+                    });
+                    yOffset += 150;
+                });
+                break;
+                
+            case 'force':
+            default:
+                // Force layout - doğal fizik tabanlı
+                data.nodes.forEach(node => {
+                    delete node.fx;
+                    delete node.fy;
+                });
+                break;
+        }
+        
+        currentGraph.graphData(data);
+        
+        // Layout butonlarını güncelle
+        document.querySelectorAll('.layout-btn').forEach(btn => {
+            btn.style.background = btn.dataset.layout === layoutType ? '#4ecdc4' : '#6c7b7f';
+        });
     }
     
     function loadSampleData() {
@@ -195,6 +425,7 @@
             .then(res => res.json())
             .then(data => {
                 initializeGraph(data);
+                updateStats(data, 'Sample Data');
             })
             .catch(err => {
                 console.error('Error loading sample data:', err);
@@ -204,14 +435,31 @@
     
     function loadRealData() {
         document.getElementById('loading').style.display = 'block';
-        fetch('/miserables.json')
-            .then(res => res.json())
+        document.getElementById('loading').innerHTML = 'Fetching live Ethereum data...';
+        
+        fetch('/api/live-ethereum')
+            .then(res => {
+                if (!res.ok) {
+                    throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+                }
+                return res.json();
+            })
             .then(data => {
+                console.log('Live Ethereum data received:', data);
                 initializeGraph(data);
+                updateStats(data, 'Live Ethereum');
             })
             .catch(err => {
-                console.error('Error loading real data:', err);
-                document.getElementById('loading').innerHTML = 'Error loading real data!';
+                console.error('Error loading live data:', err);
+                document.getElementById('loading').innerHTML = `
+                    <div style="color: #ff6b6b;">
+                        ❌ Error loading live data:<br/>
+                        ${err.message}<br/>
+                        <button onclick="loadSampleData()" style="margin-top: 10px; padding: 5px 10px;">
+                            Try Sample Data Instead
+                        </button>
+                    </div>
+                `;
             });
     }
     
@@ -220,6 +468,85 @@
             currentGraph.zoomToFit(400);
         }
     }
+    
+    function loadAddressData() {
+        const address = document.getElementById('addressInput').value.trim();
+        if (!address) {
+            alert('Please enter an Ethereum address');
+            return;
+        }
+        
+        // Ethereum address validation
+        if (!/^0x[a-fA-F0-9]{40}$/.test(address)) {
+            alert('Invalid Ethereum address format');
+            return;
+        }
+        
+        document.getElementById('loading').style.display = 'block';
+        document.getElementById('loading').innerHTML = `Fetching data for ${address.substring(0, 10)}...`;
+        
+        fetch(`/api/live-ethereum/${address}`)
+            .then(res => {
+                if (!res.ok) {
+                    throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+                }
+                return res.json();
+            })
+            .then(data => {
+                console.log('Address data received:', data);
+                initializeGraph(data);
+                updateStats(data, `Address: ${address.substring(0, 10)}...`);
+            })
+            .catch(err => {
+                console.error('Error loading address data:', err);
+                document.getElementById('loading').innerHTML = `
+                    <div style="color: #ff6b6b;">
+                        ❌ Error loading address data:<br/>
+                        ${err.message}
+                    </div>
+                `;
+            });
+    }
+    
+    function exportGraph() {
+        if (!currentGraph) {
+            alert('Önce bir graph yükleyin!');
+            return;
+        }
+        
+        const data = currentGraph.graphData();
+        const jsonStr = JSON.stringify(data, null, 2);
+        const blob = new Blob([jsonStr], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `ethereum-network-${new Date().toISOString().split('T')[0]}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+    
+    // Klavye kısayolları
+    document.addEventListener('keydown', function(e) {
+        if (e.ctrlKey || e.metaKey) {
+            switch(e.key) {
+                case 'r': // Reset view
+                    e.preventDefault();
+                    resetView();
+                    break;
+                case 's': // Sample data
+                    e.preventDefault();
+                    loadSampleData();
+                    break;
+                case 'l': // Live data
+                    e.preventDefault();
+                    loadRealData();
+                    break;
+            }
+        }
+    });
     
     window.addEventListener('load', () => {
         setTimeout(() => {
